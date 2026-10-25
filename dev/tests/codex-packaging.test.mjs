@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const readJson = async (relativePath) =>
   JSON.parse(await fs.readFile(path.join(pluginRoot, relativePath), 'utf8'));
 

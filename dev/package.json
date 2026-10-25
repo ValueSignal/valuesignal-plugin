@@ -1,6 +1,6 @@
 {
-  "name": "@valuesignal/cursor-plugin-mcp",
-  "version": "1.0.14",
+  "name": "@valuesignal/plugin-mcp",
+  "version": "1.0.16",
   "private": false,
   "type": "module",
   "description": "Bundled MCP server for the ValueSignal AI-work evidence plugin",
@@ -9,20 +9,19 @@
   },
   "scripts": {
     "build:mcp": "node scripts/build-mcp.mjs",
-    "check:mcp-bundle": "node scripts/build-mcp.mjs && git diff --exit-code -- mcp/server.mjs",
+    "check:mcp-bundle": "node scripts/build-mcp.mjs && git diff --exit-code -- ../mcp/server.mjs",
     "sync:codex-manifest": "node scripts/sync-codex-manifest.mjs",
     "check:codex-manifest": "node scripts/sync-codex-manifest.mjs --check",
-    "validate": "node scripts/validate-plugin.mjs .",
+    "validate": "node scripts/validate-plugin.mjs ..",
     "test": "node tests/redact.test.mjs",
     "test:host": "node tests/host-platform.test.mjs",
     "test:packaging": "node tests/host-packaging.test.mjs",
     "test:codex": "node tests/codex-packaging.test.mjs",
-    "test:tools": "node tests/mcp-tools.test.mjs"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0"
+    "test:tools": "node tests/mcp-tools.test.mjs",
+    "test:stdio": "node tests/mcp-stdio.test.mjs"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "esbuild": "^0.28.2"
   }
 }

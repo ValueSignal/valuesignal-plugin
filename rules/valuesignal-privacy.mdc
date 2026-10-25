@@ -6,5 +6,5 @@ alwaysApply: true
 When using ValueSignal MCP tools:
 
 - Never send API keys, passwords, JWTs, or `.env` contents in `valuesignal_capture_turn`
-- Prefer summaries over full file dumps for large artifacts
+- Prefer summaries over full file dumps for large artifacts in the response; keep the user's own prompt verbatim
 - Tell the user capture is optional and they control what is submitted

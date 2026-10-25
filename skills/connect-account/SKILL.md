@@ -1,6 +1,6 @@
 ---
 name: connect-account
-description: Help the user connect ValueSignal to Cursor by configuring VALUESIGNAL_JWT_TOKEN for the valuesignal MCP server. Use when the user asks to link ValueSignal, set up the plugin, or fix auth errors.
+description: Help the user connect ValueSignal to Cursor, Claude Code, or Codex by giving the valuesignal MCP server an API token. Use when the user asks to link ValueSignal, set up the plugin, or fix auth errors.
 ---
 
 # Connect ValueSignal
@@ -12,12 +12,17 @@ billing, or data — and can be revoked anytime.
 
 1. Log in at https://app.valuesignal.ai
 2. Go to **Account Settings → Integrations & API tokens**
-3. Name the token (e.g. "Cursor plugin") and click **Generate token**, then copy
+3. Name the token (e.g. "ValueSignal plugin") and click **Generate token**, then copy
    the `vs_pat_…` value (it's shown only once)
-4. In Cursor: **Settings → Features → MCP → valuesignal → Edit**
-5. Add environment variable: `VALUESIGNAL_JWT_TOKEN` = the token
-6. Restart MCP or run **Developer: Reload Window**
-7. Run the MCP tool `valuesignal_auth_status` to confirm
+4. Give the token to the plugin:
+   - **Claude Code:** paste it into the prompt Claude Code shows when the plugin
+     is enabled. It is stored in the OS credential store.
+   - **Cursor:** **Settings → Features → MCP → valuesignal → Edit**, add the
+     environment variable `VALUESIGNAL_JWT_TOKEN` = the token, then restart MCP
+     or run **Developer: Reload Window**
+   - **Codex:** make `VALUESIGNAL_JWT_TOKEN` available in the environment Codex
+     is launched from (see the plugin README)
+5. Run the MCP tool `valuesignal_auth_status` to confirm
 
 A short-lived session token (`sessionStorage.getItem('valueSignalToken')` from
 the browser console) still works as a fallback, but it expires and must be

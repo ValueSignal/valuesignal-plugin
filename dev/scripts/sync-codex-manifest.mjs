@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const portablePath = path.join(pluginRoot, 'plugin.json');
 const codexDir = path.join(pluginRoot, '.codex-plugin');
 const codexPath = path.join(codexDir, 'plugin.json');
@@ -36,7 +36,7 @@ if (checkOnly) {
     // The mismatch below gives one consistent failure for missing and stale files.
   }
   if (actual !== expected) {
-    console.error('.codex-plugin/plugin.json is stale; run npm run sync:codex-manifest');
+    console.error('.codex-plugin/plugin.json is stale; run npm run sync:codex-manifest in dev/');
     process.exit(1);
   }
   console.log('.codex-plugin/plugin.json matches portable plugin.json');

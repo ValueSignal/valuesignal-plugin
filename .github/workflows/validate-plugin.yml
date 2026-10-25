@@ -1,4 +1,4 @@
-name: Validate Cursor plugin
+name: Validate plugin
 
 on:
   push:
@@ -9,6 +9,11 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    # Development tooling lives in dev/ so the plugin root carries no
+    # package.json or lockfile (backlog H-8). The plugin itself needs no install.
+    defaults:
+      run:
+        working-directory: dev
     steps:
       - uses: actions/checkout@v4
 
@@ -16,11 +21,12 @@ jobs:
         with:
           node-version: '20'
           cache: npm
+          cache-dependency-path: dev/package-lock.json
 
       - name: Validate manifest and frontmatter
-        run: node scripts/validate-plugin.mjs .
+        run: node scripts/validate-plugin.mjs ..
 
-      - name: Install dependencies (reproducible)
+      - name: Install development dependencies (reproducible)
         run: npm ci
 
       - name: Verify committed MCP bundle is current
@@ -30,7 +36,7 @@ jobs:
         run: npm run test:packaging
 
       - name: Validate Claude plugin manifest
-        run: npx --yes @anthropic-ai/claude-code plugin validate .
+        run: npx --yes @anthropic-ai/claude-code plugin validate .. --strict
 
       - name: Credential redaction tests
         run: node tests/redact.test.mjs
@@ -40,3 +46,6 @@ jobs:
 
       - name: Tool annotation contract
         run: node tests/mcp-tools.test.mjs
+
+      - name: MCP stdio protocol edges
+        run: node tests/mcp-stdio.test.mjs

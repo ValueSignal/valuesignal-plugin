@@ -1,14 +1,20 @@
 {
   "name": "valuesignal",
-  "version": "1.0.14",
+  "displayName": "ValueSignal",
+  "version": "1.0.16",
   "description": "Turn real AI-assisted work from Cursor, Claude Code, and Codex into a verified builder profile — private by default and shareable as proof of work.",
   "author": {
     "name": "ValueSignal",
     "email": "support@valuesignal.ai"
   },
   "homepage": "https://valuesignal.ai",
-  "repository": "https://github.com/ValueSignal/valuesignal-cursor-plugin",
+  "repository": "https://github.com/ValueSignal/valuesignal-plugin",
   "license": "MIT",
+  "icon": "./assets/logo.svg",
+  "documentationUrl": "https://github.com/ValueSignal/valuesignal-plugin#readme",
+  "supportUrl": "https://github.com/ValueSignal/valuesignal-plugin/issues",
+  "privacyPolicyUrl": "https://app.valuesignal.ai/privacy-policy.html",
+  "termsOfServiceUrl": "https://app.valuesignal.ai/terms-of-service.html",
   "keywords": [
     "valuesignal",
     "ai-fluency",
@@ -25,8 +31,17 @@
       "env": {
         "VALUESIGNAL_API_BASE": "https://app.valuesignal.ai",
         "VALUESIGNAL_HOST": "claude-code",
-        "VALUESIGNAL_JWT_TOKEN": "${VALUESIGNAL_JWT_TOKEN:-}"
+        "VALUESIGNAL_PLUGIN_TOKEN": "${user_config.api_token}"
       }
+    }
+  },
+  "userConfig": {
+    "api_token": {
+      "type": "string",
+      "title": "ValueSignal API token",
+      "description": "Scoped vs_pat_ token from app.valuesignal.ai → Account Settings → Integrations & API tokens. Allows capture and certification only; revocable. Leave empty to set VALUESIGNAL_JWT_TOKEN in your environment instead.",
+      "sensitive": true,
+      "default": ""
     }
   }
 }

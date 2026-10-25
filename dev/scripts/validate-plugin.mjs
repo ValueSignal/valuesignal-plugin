@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Validate plugin layout (Cursor marketplace template rules).
- * Usage: node scripts/validate-plugin.mjs [repo-root]
+ * Validate plugin layout: every host manifest, plus the Cursor marketplace template rules for .cursor-plugin/.
+ * Usage (from dev/): node scripts/validate-plugin.mjs [repo-root]
  */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(process.argv[2] || path.join(__dirname, '..'));
+const repoRoot = path.resolve(process.argv[2] || path.join(__dirname, '..', '..'));
 
 const errors = [];
 const warnings = [];
@@ -67,16 +67,16 @@ async function validateVersionConsistency(pluginDir, entry, pluginManifest, mark
     `${entry.name} Codex plugin.json`
   );
   const packageManifest = await readJsonFile(
-    path.join(pluginDir, 'package.json'),
-    `${entry.name} package.json`
+    path.join(pluginDir, 'dev', 'package.json'),
+    `${entry.name} dev/package.json`
   );
   const claudeManifest = await readJsonFile(
     path.join(pluginDir, '.claude-plugin', 'plugin.json'),
     `${entry.name} Claude plugin.json`
   );
   const packageLock = await readJsonFile(
-    path.join(pluginDir, 'package-lock.json'),
-    `${entry.name} package-lock.json`
+    path.join(pluginDir, 'dev', 'package-lock.json'),
+    `${entry.name} dev/package-lock.json`
   );
   const configSource = await readTextFile(
     path.join(pluginDir, 'lib', 'config.mjs'),
@@ -98,9 +98,9 @@ async function validateVersionConsistency(pluginDir, entry, pluginManifest, mark
     '.codex-plugin/plugin.json': codexManifest?.version,
     '.cursor-plugin/plugin.json': pluginManifest.version,
     '.claude-plugin/plugin.json': claudeManifest?.version,
-    'package.json': packageManifest?.version,
-    'package-lock.json': packageLock?.version,
-    'package-lock.json packages[""]': packageLock?.packages?.['']?.version,
+    'dev/package.json': packageManifest?.version,
+    'dev/package-lock.json': packageLock?.version,
+    'dev/package-lock.json packages[""]': packageLock?.packages?.['']?.version,
     'lib/config.mjs': matchVersion(configSource, /PLUGIN_VERSION\s*=\s*['"]([0-9]+\.[0-9]+\.[0-9]+(?:-[\w.-]+)?)['"]/),
     'mcp/server.source.mjs': matchVersion(serverSource, /version\s*:\s*['"]([0-9]+\.[0-9]+\.[0-9]+(?:-[\w.-]+)?)['"]/),
     'mcp/server.mjs': matchVersion(serverBundle, /version\s*:\s*['"]([0-9]+\.[0-9]+\.[0-9]+(?:-[\w.-]+)?)['"]/),

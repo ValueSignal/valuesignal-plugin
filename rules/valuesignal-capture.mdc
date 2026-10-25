@@ -6,8 +6,7 @@ alwaysApply: true
 When the user asks to **capture**, **log**, or save the current thread or session to ValueSignal (or the AI logbook):
 
 1. Run `valuesignal_auth_status` if JWT configuration is uncertain.
-2. Call `valuesignal_capture_turn` with a concise summary of the **full thread** (`userPrompt` + `systemResponse`). Reuse the same `sessionId` for turns in the same Cursor composer when appropriate; increment `messageIndex` for additional turns in that session.
-3. Include a short distinctive phrase in `userPrompt` so the user can search the logbook rail after refresh.
-4. Reply with `traceId`, `capturedAt`, and `scoresPersisted` from the tool result, and remind them to hard-refresh the logbook (filter source **CURSOR** if needed).
+2. Call `valuesignal_capture_turn` once per turn: `userPrompt` is the user's message **verbatim** (never a summary, paraphrase, or added text, because ValueSignal scores the user's own direction); `systemResponse` may be a faithful summary of a long response. Reuse the same `sessionId` for turns in the same Cursor composer when appropriate; increment `messageIndex` for additional turns in that session.
+3. Reply with `traceId`, `capturedAt`, and `scoresPersisted` from the tool result, and remind them to hard-refresh the logbook (filter source **CURSOR** if needed).
 
 Do **not** call capture tools unless the user requested logging or explicitly opted in for that turn. Follow `valuesignal-privacy.mdc` for secrets and large dumps.

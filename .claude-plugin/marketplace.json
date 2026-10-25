@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "ValueSignal — turn your real AI coding work into verified skill signals and proof of work",
-    "version": "1.0.14"
+    "version": "1.0.16"
   },
   "plugins": [
     {
       "name": "valuesignal",
       "source": "./",
       "description": "Capture AI-assisted work from Cursor, Claude Code, and Codex into ValueSignal — measured signals, private by default, verifiable proof of work.",
-      "version": "1.0.14",
+      "version": "1.0.16",
       "keywords": [
         "valuesignal",
         "ai-fluency",

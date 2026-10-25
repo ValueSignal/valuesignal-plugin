@@ -1,6 +1,6 @@
 {
   "name": "valuesignal",
-  "version": "1.0.14",
+  "version": "1.0.16",
   "description": "Capture AI-assisted work as private skill evidence and create verifiable proof of work.",
   "author": {
     "name": "ValueSignal",
@@ -8,7 +8,7 @@
     "url": "https://valuesignal.ai"
   },
   "homepage": "https://valuesignal.ai",
-  "repository": "https://github.com/ValueSignal/valuesignal-cursor-plugin",
+  "repository": "https://github.com/ValueSignal/valuesignal-plugin",
   "license": "MIT",
   "keywords": [
     "valuesignal",

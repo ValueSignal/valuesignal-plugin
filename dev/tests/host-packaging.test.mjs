@@ -7,7 +7,7 @@ import readline from 'node:readline';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const bundlePath = path.join(pluginRoot, 'mcp', 'server.mjs');
 const claudeManifestPath = path.join(pluginRoot, '.claude-plugin', 'plugin.json');
 const missingTokenMessage =
@@ -17,8 +17,20 @@ const manifest = JSON.parse(await fs.readFile(claudeManifestPath, 'utf8'));
 const claudeServer = manifest.mcpServers?.valuesignal;
 assert.equal(claudeServer?.command, 'node');
 assert.deepEqual(claudeServer?.args, ['${CLAUDE_PLUGIN_ROOT}/mcp/server.mjs']);
-assert.equal(claudeServer?.env?.VALUESIGNAL_JWT_TOKEN, '${VALUESIGNAL_JWT_TOKEN:-}');
 console.log('PASS Claude manifest resolves the bundled server from CLAUDE_PLUGIN_ROOT');
+
+// P-2: the token comes from a prompted, sensitive userConfig value. The manifest
+// must not read a credential from the user's environment (directory review hold).
+const apiToken = manifest.userConfig?.api_token;
+assert.equal(apiToken?.type, 'string');
+assert.equal(apiToken?.sensitive, true);
+assert.equal(apiToken?.default, '');
+assert.equal(claudeServer?.env?.VALUESIGNAL_PLUGIN_TOKEN, '${user_config.api_token}');
+assert.ok(
+  !Object.values(claudeServer?.env || {}).some((v) => /\$\{(?!user_config\.|CLAUDE_)/.test(v)),
+  'Claude manifest env must not expand variables from the user environment'
+);
+console.log('PASS Claude manifest takes the token from a sensitive userConfig prompt');
 
 const cleanRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'valuesignal-no-install-'));
 const cleanMcpDir = path.join(cleanRoot, 'mcp');
@@ -28,6 +40,7 @@ await fs.copyFile(bundlePath, path.join(cleanMcpDir, 'server.mjs'));
 const env = { ...process.env };
 delete env.VALUESIGNAL_JWT_TOKEN;
 delete env.VALUESIGNAL_JWT;
+delete env.VALUESIGNAL_PLUGIN_TOKEN;
 env.VALUESIGNAL_API_BASE = 'http://127.0.0.1:1';
 env.VALUESIGNAL_HOST = 'claude-code';
 

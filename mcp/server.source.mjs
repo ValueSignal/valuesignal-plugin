@@ -1,19 +1,11 @@
 // Source entrypoint for the committed, install-free mcp/server.mjs bundle.
 // Run `npm run build:mcp` after changing this file or anything under lib/.
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { createMcpServer } from '../lib/mcp-stdio.mjs';
 import { buildCaptureEvent, resolveUserId, postPluginIngress, postProofCert } from '../lib/ingress-client.mjs';
-import { getApiBase, getJwt } from '../lib/config.mjs';
+import { getApiBase, getJwt, getPluginHost } from '../lib/config.mjs';
 import { detectWorkspaceProjectRef, normalizeProjectRef } from '../lib/project-ref.mjs';
 
-const server = new Server(
-  { name: 'valuesignal', version: '1.0.14' },
-  { capabilities: { tools: {} } }
-);
+const serverInfo = { name: 'valuesignal', version: '1.0.16' };
 
 // TOOL ANNOTATIONS
 // `title` and `annotations` are required fields in both the Anthropic and
@@ -33,7 +25,7 @@ const server = new Server(
 //   dashboard_url     returns a string; no I/O at all.
 //
 // Nothing here is destructive: no tool deletes or overwrites user data.
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
+const listTools = async () => ({
   tools: [
     {
       name: 'valuesignal_auth_status',
@@ -46,7 +38,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         openWorldHint: false,
       },
       description:
-        'Check whether VALUESIGNAL_JWT_TOKEN is configured and which API base is used.',
+        'Check whether a ValueSignal API token is configured and which API base is used.',
       inputSchema: { type: 'object', properties: {} },
     },
     {
@@ -60,12 +52,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         openWorldHint: false,
       },
       description:
-        'Send one AI turn (user prompt + assistant response) to ValueSignal ingress for scoring.',
+        'Send one AI turn (user prompt + assistant response, credentials redacted first) to the user\'s private ValueSignal logbook for scoring. Also sends the workspace git remote as host/owner/repo, when there is one, to bind the capture to its project.',
       inputSchema: {
         type: 'object',
         properties: {
-          userPrompt: { type: 'string', description: 'User message text' },
-          systemResponse: { type: 'string', description: 'Assistant message text' },
+          userPrompt: { type: 'string', description: "The user's message, verbatim (not a summary or paraphrase)" },
+          systemResponse: { type: 'string', description: 'Assistant response text (a faithful summary is acceptable for long responses)' },
           sessionId: {
             type: 'string',
             description: 'Optional stable session id for this conversation',
@@ -80,15 +72,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: 'valuesignal_dashboard_url',
-      title: 'Open the ValueSignal logbook',
+      title: 'Open the ValueSignal dashboard',
       annotations: {
-        title: 'Open the ValueSignal logbook',
+        title: 'Open the ValueSignal dashboard',
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false,
       },
-      description: 'Return the URL to open your ValueSignal logbook in the browser.',
+      description: 'Return the URL of your ValueSignal dashboard (skill signals and recent sessions) to open in the browser. Makes no network request.',
       inputSchema: { type: 'object', properties: {} },
     },
     {
@@ -120,10 +112,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
   ],
-}));
+});
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+const callTool = async ({ name, arguments: args }) => {
 
   if (name === 'valuesignal_auth_status') {
     const jwt = getJwt();
@@ -137,7 +128,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               'Not authenticated.',
               '1. Log in at https://app.valuesignal.ai',
               '2. Account Settings → Integrations & API tokens → Generate token',
-              '3. Set VALUESIGNAL_JWT_TOKEN in your Cursor, Claude Code, or Codex MCP environment',
+              getPluginHost() === 'claude-code'
+                ? '3. Enter it in the prompt Claude Code shows when you enable the plugin, or set VALUESIGNAL_JWT_TOKEN in the environment Claude Code runs in'
+                : '3. Set VALUESIGNAL_JWT_TOKEN in your Cursor, Claude Code, or Codex MCP environment',
             ].join('\n'),
           },
         ],
@@ -261,14 +254,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   throw new Error(`Unknown tool: ${name}`);
-});
+};
 
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+createMcpServer({ serverInfo, listTools, callTool }).listen();

@@ -6,8 +6,8 @@
  * changes on either side, both suites must be updated together.
  */
 import assert from 'node:assert/strict';
-import { redactCredentials, redactCredentialsDeep } from '../lib/redact.mjs';
-import { assertAllowedApiBase } from '../lib/config.mjs';
+import { redactCredentials, redactCredentialsDeep } from '../../lib/redact.mjs';
+import { assertAllowedApiBase } from '../../lib/config.mjs';
 
 // NOTE ON FIXTURE SHAPE
 // Credential fixtures below are written as `'prefix' + 'body'` rather than as a

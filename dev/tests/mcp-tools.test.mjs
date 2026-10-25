@@ -1,6 +1,6 @@
 /**
  * B1 — every tool must advertise a title and all four annotation hints.
- * Run: node tests/mcp-tools.test.mjs
+ * Run (from dev/): node tests/mcp-tools.test.mjs
  *
  * Both the Anthropic and OpenAI submission rubrics require these fields, and a
  * host uses the hints to decide whether a call is safe to retry or to run
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const REQUIRED_HINTS = ['readOnlyHint', 'destructiveHint', 'idempotentHint', 'openWorldHint'];
 
 /** What each tool must keep promising. Changing a value here changes what we

@@ -1,6 +1,6 @@
 {
   "name": "@valuesignal/plugin-mcp",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": false,
   "type": "module",
   "description": "Bundled MCP server for the ValueSignal AI-work evidence plugin",

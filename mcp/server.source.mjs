@@ -1,11 +1,11 @@
 // Source entrypoint for the committed, install-free mcp/server.mjs bundle.
 // Run `npm run build:mcp` after changing this file or anything under lib/.
 import { createMcpServer } from '../lib/mcp-stdio.mjs';
-import { buildCaptureEvent, resolveUserId, postPluginIngress, postProofCert } from '../lib/ingress-client.mjs';
+import { buildCaptureEvent, resolveAccount, resolveUserId, postPluginIngress, postProofCert } from '../lib/ingress-client.mjs';
 import { getApiBase, getJwt, getPluginHost } from '../lib/config.mjs';
 import { detectWorkspaceProjectRef, normalizeProjectRef } from '../lib/project-ref.mjs';
 
-const serverInfo = { name: 'valuesignal', version: '1.0.16' };
+const serverInfo = { name: 'valuesignal', version: '1.0.17' };
 
 // TOOL ANNOTATIONS
 // `title` and `annotations` are required fields in both the Anthropic and
@@ -21,7 +21,8 @@ const serverInfo = { name: 'valuesignal', version: '1.0.16' };
 //                     open internet. Closed world under the MCP spec (web search is
 //                     open; a memory store is not) and under OpenAI's rubric, which
 //                     defines openWorldHint as "affects publicly visible state".
-//   auth_status       reads local env only — no network, hence openWorld false.
+//   auth_status       reads the local credential and asks ValueSignal which account
+//                     owns it; reads nothing else and changes nothing, hence openWorld false.
 //   dashboard_url     returns a string; no I/O at all.
 //
 // Nothing here is destructive: no tool deletes or overwrites user data.
@@ -38,7 +39,7 @@ const listTools = async () => ({
         openWorldHint: false,
       },
       description:
-        'Check whether a ValueSignal API token is configured and which API base is used.',
+        'Check whether a ValueSignal API token is configured, which ValueSignal account (email) it belongs to, and which API base is used.',
       inputSchema: { type: 'object', properties: {} },
     },
     {
@@ -136,17 +137,22 @@ const callTool = async ({ name, arguments: args }) => {
         ],
       };
     }
-    let userId = 'unknown';
+    let account = { userId: 'unknown', email: null };
     try {
-      userId = await resolveUserId(jwt);
+      account = await resolveAccount(jwt);
     } catch {
-      /* ignore */
+      /* ignore: report what we can */
     }
     return {
       content: [
         {
           type: 'text',
-          text: `Configured. API: ${apiBase}\nUser id: ${userId}`,
+          text: [
+            'Configured.',
+            `Account: ${account.email || 'email unavailable (check the token was created in the account you use)'}`,
+            `API: ${apiBase}`,
+            `Account id: ${account.userId}`,
+          ].join('\n'),
         },
       ],
     };

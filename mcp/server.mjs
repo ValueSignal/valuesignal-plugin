@@ -114,7 +114,7 @@ function createMcpServer({ serverInfo: serverInfo2, listTools: listTools2, callT
 import { randomUUID } from "crypto";
 
 // lib/config.mjs
-var PLUGIN_VERSION = "1.0.16";
+var PLUGIN_VERSION = "1.0.17";
 var KNOWN_HOSTS = /* @__PURE__ */ new Set(["cursor", "codex", "claude-code"]);
 function getPluginHost() {
   const declared = process.env.VALUESIGNAL_HOST?.trim().toLowerCase();
@@ -416,15 +416,8 @@ function decodeJwtSub(token) {
 function looksLikeJwt(token) {
   return typeof token === "string" && token.split(".").length === 3 && !token.startsWith("vs_pat_");
 }
-var userIdCache = /* @__PURE__ */ new Map();
-async function resolveUserId(token) {
-  requireToken(token);
-  if (looksLikeJwt(token)) {
-    return decodeJwtSub(token);
-  }
-  if (userIdCache.has(token)) {
-    return userIdCache.get(token);
-  }
+var accountCache = /* @__PURE__ */ new Map();
+async function fetchWhoami(token) {
   const apiBase = getApiBase();
   const res = await fetch(`${apiBase}/api/ingress/whoami`, {
     headers: {
@@ -438,8 +431,27 @@ async function resolveUserId(token) {
   }
   const body = await res.json().catch(() => ({}));
   if (!body?.userId) throw new Error("whoami did not return a userId");
-  userIdCache.set(token, body.userId);
-  return body.userId;
+  return { userId: body.userId, email: typeof body.email === "string" ? body.email : null };
+}
+async function resolveAccount(token) {
+  requireToken(token);
+  if (accountCache.has(token)) return accountCache.get(token);
+  let account;
+  try {
+    account = await fetchWhoami(token);
+  } catch (err) {
+    if (!looksLikeJwt(token)) throw err;
+    account = { userId: decodeJwtSub(token), email: null };
+  }
+  accountCache.set(token, account);
+  return account;
+}
+async function resolveUserId(token) {
+  requireToken(token);
+  if (looksLikeJwt(token)) {
+    return decodeJwtSub(token);
+  }
+  return (await resolveAccount(token)).userId;
 }
 
 // lib/project-ref.mjs
@@ -482,7 +494,7 @@ function detectWorkspaceProjectRef() {
 }
 
 // mcp/server.source.mjs
-var serverInfo = { name: "valuesignal", version: "1.0.16" };
+var serverInfo = { name: "valuesignal", version: "1.0.17" };
 var listTools = async () => ({
   tools: [
     {
@@ -495,7 +507,7 @@ var listTools = async () => ({
         idempotentHint: true,
         openWorldHint: false
       },
-      description: "Check whether a ValueSignal API token is configured and which API base is used.",
+      description: "Check whether a ValueSignal API token is configured, which ValueSignal account (email) it belongs to, and which API base is used.",
       inputSchema: { type: "object", properties: {} }
     },
     {
@@ -586,17 +598,21 @@ var callTool = async ({ name, arguments: args }) => {
         ]
       };
     }
-    let userId = "unknown";
+    let account = { userId: "unknown", email: null };
     try {
-      userId = await resolveUserId(jwt);
+      account = await resolveAccount(jwt);
     } catch {
     }
     return {
       content: [
         {
           type: "text",
-          text: `Configured. API: ${apiBase}
-User id: ${userId}`
+          text: [
+            "Configured.",
+            `Account: ${account.email || "email unavailable (check the token was created in the account you use)"}`,
+            `API: ${apiBase}`,
+            `Account id: ${account.userId}`
+          ].join("\n")
         }
       ]
     };

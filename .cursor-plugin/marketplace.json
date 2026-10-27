@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "ValueSignal — turn your real Cursor AI work into a verified builder profile",
-    "version": "1.0.16"
+    "version": "1.0.17"
   },
   "plugins": [
     {
       "name": "valuesignal",
       "source": ".",
       "description": "Turn your real Cursor AI work into a verified builder profile — measured skill signals, private by default, shareable as proof of work.",
-      "version": "1.0.16",
+      "version": "1.0.17",
       "keywords": [
         "valuesignal",
         "ai-fluency",
